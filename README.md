@@ -1,0 +1,1 @@
+# zadinventory-frontend
