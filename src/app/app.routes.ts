@@ -21,9 +21,9 @@ export const routes: Routes = [
           ).then((m) => m.ProdutoFormComponent),
       },
       {
-        path: 'vendas',
+        path: 'operacoes',
         loadComponent: () =>
-          import('./features/vendas/venda-list/venda-list.component').then(
+          import('./features/operacoes/operacao-list/venda-list.component').then(
             (m) => m.VendaListComponent
           ),
       },
