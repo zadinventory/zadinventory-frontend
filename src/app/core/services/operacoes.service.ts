@@ -1,28 +1,30 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Venda } from '../../shared/models/operacao';
+import { Operacao } from '../../shared/models/operacao';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class OperacoesService {
   private apiUrl = 'http://localhost:8080/api/operacoes';
 
   constructor(private http: HttpClient) {}
 
-  listar(): Observable<Venda[]> {
-    return this.http.get<Venda[]>(this.apiUrl);
+  listar(): Observable<Operacao[]> {
+    return this.http.get<Operacao[]>(this.apiUrl);
   }
 
-  obterPorId(id: number): Observable<Venda> {
-    return this.http.get<Venda>(`${this.apiUrl}/${id}`);
+  obterPorId(id: number): Observable<Operacao> {
+    return this.http.get<Operacao>(`${this.apiUrl}/${id}`);
   }
 
-  criar(venda: Venda): Observable<Venda> {
-    return this.http.post<Venda>(this.apiUrl, venda);
+  criar(operacao: Operacao): Observable<Operacao> {
+    return this.http.post<Operacao>(this.apiUrl, operacao);
   }
 
-  atualizar(id: number, venda: Venda): Observable<Venda> {
-    return this.http.put<Venda>(`${this.apiUrl}/${id}`, venda);
+  atualizar(id: number, operacao: Operacao): Observable<Operacao> {
+    return this.http.put<Operacao>(`${this.apiUrl}/${id}`, operacao);
   }
 
   excluir(id: number): Observable<void> {
