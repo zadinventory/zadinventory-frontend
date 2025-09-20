@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Categoria } from '../../shared/models/categoria';
 
-export interface Categoria {
-  id?: number;
-  nome: string;
-}
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class CategoriasService {
   private apiUrl = 'http://localhost:8080/api/categorias';
 

@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Tag } from '../../shared/models/tag';
 
-export interface Tag {
-  id?: number;
-  nome: string;
-}
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class TagsService {
   private apiUrl = 'http://localhost:8080/api/tags';
 
