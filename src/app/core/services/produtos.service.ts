@@ -1,30 +1,33 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Produto } from '../../shared/models/produto';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class ProdutosService {
-  private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/produtos'; // confirmar com o tchola
+  private apiUrl = 'http://localhost:8080/api/produtos'; // ajuste se necessário
+
+  constructor(private http: HttpClient) {}
 
   listar(): Observable<Produto[]> {
     return this.http.get<Produto[]>(this.apiUrl);
   }
 
-  buscarPorId(id: number): Observable<Produto> {
+  obterPorId(id: number): Observable<Produto> {
     return this.http.get<Produto>(`${this.apiUrl}/${id}`);
   }
 
-  salvar(produto: Produto): Observable<Produto> {
+  criar(produto: Produto): Observable<Produto> {
     return this.http.post<Produto>(this.apiUrl, produto);
   }
 
-  atualizar(produto: Produto): Observable<Produto> {
-    return this.http.put<Produto>(`${this.apiUrl}/${produto.id}`, produto);
+  atualizar(id: number, produto: Produto): Observable<Produto> {
+    return this.http.put<Produto>(`${this.apiUrl}/${id}`, produto);
   }
 
-  deletar(id: number): Observable<void> {
+  excluir(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

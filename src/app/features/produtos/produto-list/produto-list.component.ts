@@ -1,51 +1,104 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { RouterModule } from '@angular/router';
 import { ProdutosService } from '../../../core/services/produtos.service';
 import { Produto } from '../../../shared/models/produto';
+import Swal from 'sweetalert2';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-produto-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
-  templateUrl: './produto-list.component.html'
+  imports: [CommonModule, FormsModule],
+  templateUrl: './produto-list.component.html',
+  styleUrls: ['./produto-list.component.scss'],
 })
 export class ProdutoListComponent implements OnInit {
-  private service = inject(ProdutosService);
-  private router = inject(Router);
-
   produtos: Produto[] = [];
+  produtoSelecionado: Produto | null = null;
+
+  constructor(private produtoService: ProdutosService) {}
 
   ngOnInit(): void {
-    this.carregar();
+    this.carregarProdutos();
   }
 
-  trackById(index: number, item: Produto): number {
-    return item.id!;
-  }
-
-  carregar() {
-    this.service.listar().subscribe({
+  carregarProdutos(): void {
+    this.produtoService.listar().subscribe({
       next: (data) => (this.produtos = data),
-      error: (err) => console.error('Erro ao carregar produtos', err)
+      error: (err) => console.error('Erro ao carregar produtos', err),
     });
   }
 
-  novo() {
-    this.router.navigate(['/produtos/novo']);
+  novoProduto(): void {
+    this.produtoSelecionado = {
+      id: 0,
+      nome: '',
+      descricao: '',
+      preco: 0,
+      quantidade: 0,
+    };
+    this.abrirModal();
   }
 
-  editar(produto: Produto) {
-    this.router.navigate(['/produtos/editar', produto.id]);
+  editar(produto: Produto): void {
+    this.produtoSelecionado = { ...produto };
+    this.abrirModal();
   }
 
-  excluir(produto: Produto) {
-    if (confirm(`Deseja excluir o produto ${produto.nome}?`)) {
-      this.service.deletar(produto.id!).subscribe({
-        next: () => this.carregar(),
-        error: (err) => console.error('Erro ao excluir produto', err)
-      });
+  excluir(produto: Produto): void {
+    if (!produto.id) {
+      Swal.fire('Erro', 'Produto sem ID válido.', 'error');
+      return;
+    }
+
+    Swal.fire({
+      title: 'Tem certeza?',
+      text: `Excluir "${produto.nome}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, excluir!',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.produtoService.excluir(produto.id!).subscribe({
+          next: () => {
+            Swal.fire('Excluído!', 'Produto removido com sucesso.', 'success');
+            this.carregarProdutos();
+          },
+          error: () => Swal.fire('Erro', 'Não foi possível excluir', 'error'),
+        });
+      }
+    });
+  }
+
+  salvar(): void {
+    if (!this.produtoSelecionado) return;
+
+    const req = this.produtoSelecionado.id
+      ? this.produtoService.atualizar(
+          this.produtoSelecionado.id,
+          this.produtoSelecionado
+        )
+      : this.produtoService.criar(this.produtoSelecionado);
+
+    req.subscribe({
+      next: () => {
+        Swal.fire('Sucesso', 'Produto salvo com sucesso!', 'success');
+        this.carregarProdutos();
+        this.produtoSelecionado = null;
+      },
+      error: () => Swal.fire('Erro', 'Não foi possível salvar', 'error'),
+    });
+  }
+
+  fecharModal(): void {
+    this.produtoSelecionado = null;
+  }
+
+  abrirModal(): void {
+    const modal = document.getElementById('produtoModal');
+    if (modal) {
+      (modal as any).style.display = 'block';
     }
   }
 }
