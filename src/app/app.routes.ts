@@ -14,25 +14,32 @@ export const routes: Routes = [
           ).then((m) => m.ProdutoListComponent),
       },
       {
-        path: 'produtos/novo',
-        loadComponent: () =>
-          import(
-            './features/produtos/produto-form/produto-form.component'
-          ).then((m) => m.ProdutoFormComponent),
-      },
-      {
-        path: 'operacoes',
-        loadComponent: () =>
-          import('./features/operacoes/operacao-list/operacao-list.component').then(
-            (m) => m.OperacaoListComponent
-          ),
-      },
-      {
         path: 'usuarios',
         loadComponent: () =>
           import(
             './features/usuarios/usuario-list/usuario-list.component'
           ).then((m) => m.UsuarioListComponent),
+      },
+      {
+        path: 'operacoes',
+        loadComponent: () =>
+          import(
+            './features/operacoes/operacao-list/operacao-list.component'
+          ).then((m) => m.OperacaoListComponent),
+      },
+      {
+        path: 'categorias',
+        loadComponent: () =>
+          import('./features/categorias/categoria-list.component').then(
+            (m) => m.CategoriaListComponent
+          ),
+      },
+      {
+        path: 'tags',
+        loadComponent: () =>
+          import('./features/tags/tag-list.component').then(
+            (m) => m.TagListComponent
+          ),
       },
       { path: '', redirectTo: 'produtos', pathMatch: 'full' },
     ],
