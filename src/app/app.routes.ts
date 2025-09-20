@@ -23,8 +23,8 @@ export const routes: Routes = [
       {
         path: 'operacoes',
         loadComponent: () =>
-          import('./features/operacoes/operacao-list/venda-list.component').then(
-            (m) => m.VendaListComponent
+          import('./features/operacoes/operacao-list/operacao-list.component').then(
+            (m) => m.OperacaoListComponent
           ),
       },
       {

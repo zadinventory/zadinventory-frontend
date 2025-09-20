@@ -1,0 +1,106 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Operações</h2>
+  <button class="btn btn-primary" (click)="novaOperacao()">
+    Nova Operação
+  </button>
+</div>
+
+<table class="table table-striped table-bordered">
+  <thead class="table-dark">
+    <tr>
+      <th>ID</th>
+      <th>Tipo</th>
+      <th>Valor</th>
+      <th>Data</th>
+      <th>Descrição</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let o of operacoes">
+      <td>{{ o.id }}</td>
+      <td>{{ o.tipo }}</td>
+      <td>{{ o.valor | currency : "BRL" }}</td>
+      <td>{{ o.data | date : "dd/MM/yyyy" }}</td>
+      <td>{{ o.descricao }}</td>
+      <td>
+        <button class="btn btn-sm btn-warning me-2" (click)="editar(o)">
+          Editar
+        </button>
+        <button class="btn btn-sm btn-danger" (click)="excluir(o)">
+          Excluir
+        </button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Modal -->
+<div
+  class="modal"
+  tabindex="-1"
+  [ngStyle]="{ display: operacaoSelecionada ? 'block' : 'none' }"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          {{ operacaoSelecionada?.id ? "Editar Operação" : "Nova Operação" }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="fecharModal()"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form *ngIf="operacaoSelecionada">
+          <div class="mb-3">
+            <label class="form-label">Tipo</label>
+            <select
+              class="form-select"
+              [(ngModel)]="operacaoSelecionada.tipo"
+              name="tipo"
+            >
+              <option value="ENTRADA">Entrada</option>
+              <option value="SAIDA">Saída</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Valor</label>
+            <input
+              type="number"
+              class="form-control"
+              [(ngModel)]="operacaoSelecionada.valor"
+              name="valor"
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Data</label>
+            <input
+              type="date"
+              class="form-control"
+              [(ngModel)]="operacaoSelecionada.data"
+              name="data"
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descrição</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="operacaoSelecionada.descricao"
+              name="descricao"
+            />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="fecharModal()">
+          Cancelar
+        </button>
+        <button class="btn btn-success" (click)="salvar()">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
