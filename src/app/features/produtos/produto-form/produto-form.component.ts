@@ -28,12 +28,12 @@ export class ProdutoFormComponent implements OnInit {
       quantidade: [0, [Validators.required, Validators.min(0)]]
     });
 
-    // se tiver "editar/:id"
+    // Verifica se estamos em "editar/:id"
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
       if (id) {
         this.produtoId = +id;
-        this.service.buscarPorId(this.produtoId).subscribe({
+        this.service.obterPorId(this.produtoId).subscribe({
           next: (produto) => this.form.patchValue(produto),
           error: (err) => console.error('Erro ao carregar produto', err)
         });
@@ -45,16 +45,19 @@ export class ProdutoFormComponent implements OnInit {
     const produto: Produto = this.form.value;
 
     if (this.produtoId) {
-      produto.id = this.produtoId;
-      this.service.atualizar(produto).subscribe({
+      this.service.atualizar(this.produtoId, produto).subscribe({
         next: () => this.router.navigate(['/produtos']),
         error: (err) => console.error('Erro ao atualizar produto', err)
       });
     } else {
-      this.service.salvar(produto).subscribe({
+      this.service.criar(produto).subscribe({
         next: () => this.router.navigate(['/produtos']),
         error: (err) => console.error('Erro ao salvar produto', err)
       });
     }
+  }
+
+  cancelar() {
+    this.router.navigate(['/produtos']);
   }
 }

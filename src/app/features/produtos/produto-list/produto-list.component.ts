@@ -31,18 +31,15 @@ export class ProdutoListComponent implements OnInit {
 
   novoProduto(): void {
     this.produtoSelecionado = {
-      id: 0,
       nome: '',
       descricao: '',
       preco: 0,
       quantidade: 0,
     };
-    this.abrirModal();
   }
 
   editar(produto: Produto): void {
     this.produtoSelecionado = { ...produto };
-    this.abrirModal();
   }
 
   excluir(produto: Produto): void {
@@ -85,7 +82,7 @@ export class ProdutoListComponent implements OnInit {
       next: () => {
         Swal.fire('Sucesso', 'Produto salvo com sucesso!', 'success');
         this.carregarProdutos();
-        this.produtoSelecionado = null;
+        this.fecharModal();
       },
       error: () => Swal.fire('Erro', 'Não foi possível salvar', 'error'),
     });
@@ -93,12 +90,5 @@ export class ProdutoListComponent implements OnInit {
 
   fecharModal(): void {
     this.produtoSelecionado = null;
-  }
-
-  abrirModal(): void {
-    const modal = document.getElementById('produtoModal');
-    if (modal) {
-      (modal as any).style.display = 'block';
-    }
   }
 }
