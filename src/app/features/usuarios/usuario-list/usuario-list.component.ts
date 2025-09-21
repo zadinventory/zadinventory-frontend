@@ -29,15 +29,16 @@ export class UsuarioListComponent implements OnInit {
     });
   }
 
-  novoUsuario(): void {
-    this.usuarioSelecionado = {
-      id: 0,
-      nome: '',
-      email: '',
-      senha: '',
-      role: 'FUNCIONARIO'
-    };
-  }
+novoUsuario() {
+  this.usuarioSelecionado = {
+    nome: '',
+    email: '',
+    senha: '',
+    tipoUsuario: 'FUNCIONARIO'
+  };
+}
+
+
 
   editar(usuario: Usuario): void {
     this.usuarioSelecionado = { ...usuario };

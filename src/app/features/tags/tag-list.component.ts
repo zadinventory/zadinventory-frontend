@@ -30,7 +30,7 @@ export class TagListComponent implements OnInit {
   }
 
   novaTag(): void {
-    this.tagSelecionada = { id: 0, nome: '' };
+    this.tagSelecionada = {nome: '' };
   }
 
   editar(tag: Tag): void {

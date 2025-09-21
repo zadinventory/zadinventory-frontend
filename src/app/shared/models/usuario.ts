@@ -1,7 +1,8 @@
 export interface Usuario {
-  id?: number;
+  id?: number;  // <-- opcional
   nome: string;
   email: string;
-  senha?: string;   // opcional, para não trafegar no front
-  role: 'ADMIN' | 'FUNCIONARIO';
+  senha: string;
+  tipoUsuario: 'FUNCIONARIO' | 'GERENTE';
 }
+

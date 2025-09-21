@@ -1,5 +1,5 @@
 export interface Operacao {
-  id?: number;
+  id?: number;  // <-- opcional
   tipo: 'ENTRADA' | 'SAIDA';
   valor: number;
   data: string;

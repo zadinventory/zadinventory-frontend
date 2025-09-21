@@ -29,14 +29,18 @@ export class ProdutoListComponent implements OnInit {
     });
   }
 
-  novoProduto(): void {
-    this.produtoSelecionado = {
-      nome: '',
-      descricao: '',
-      preco: 0,
-      quantidade: 0,
-    };
-  }
+novoProduto(): void {
+  this.produtoSelecionado = {
+    nome: '',
+    descricao: '',
+    quantidade: 0,
+    preco: 0,
+    categoria: { id: 1 }, // você pode setar um default
+    usuario: { id: 1 },   // ou pegar do usuário logado
+    tags: []
+  };
+}
+
 
   editar(produto: Produto): void {
     this.produtoSelecionado = { ...produto };

@@ -30,7 +30,7 @@ export class CategoriaListComponent implements OnInit {
   }
 
   novaCategoria(): void {
-    this.categoriaSelecionada = { id: 0, nome: '', descricao: '' };
+    this.categoriaSelecionada = {nome: '', descricao: '' };
   }
 
   editar(categoria: Categoria): void {
