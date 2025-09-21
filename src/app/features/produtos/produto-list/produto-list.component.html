@@ -11,107 +11,108 @@
       <th>Descrição</th>
       <th>Preço</th>
       <th>Quantidade</th>
+      <th>Categoria</th>
+      <th>Usuário</th>
+      <th>Tags</th>
       <th>Ações</th>
     </tr>
   </thead>
   <tbody>
     <tr *ngFor="let p of produtos">
-      <td>{{ p.id }}</td>
+      <td>{{ p.id ?? '—' }}</td>
       <td>{{ p.nome }}</td>
       <td>{{ p.descricao }}</td>
-      <td>{{ p.preco | currency : "BRL" }}</td>
-      <td>{{ p.quantidade }}</td>
+      <td>{{ p.preco | currency:'BRL' }}</td>
+      <td>{{ p.quantidade ?? 0 }}</td>
+      <td>{{ p.categoria?.nome || ('#' + (p.categoria?.id ?? '—')) }}</td>
+      <td>{{ p.usuario?.nome || ('#' + (p.usuario?.id ?? '—')) }}</td>
       <td>
-        <button class="btn btn-sm btn-warning me-2" (click)="editar(p)">
-          Editar
-        </button>
-        <button class="btn btn-sm btn-danger" (click)="excluir(p)">
-          Excluir
-        </button>
+        <ng-container *ngIf="p.tags?.length; else semTags">
+          <span class="badge bg-secondary me-1" *ngFor="let t of p.tags">{{ t.nome || ('#' + (t.id ?? '—')) }}</span>
+        </ng-container>
+        <ng-template #semTags><small class="text-muted">—</small></ng-template>
+      </td>
+      <td>
+        <button class="btn btn-sm btn-warning me-2" (click)="editar(p)">Editar</button>
+        <button class="btn btn-sm btn-danger" (click)="excluir(p)">Excluir</button>
       </td>
     </tr>
   </tbody>
 </table>
 
 <!-- Modal Backdrop -->
-<div 
-  class="modal-backdrop fade show" 
-  *ngIf="produtoSelecionado"
-  (click)="fecharModal()">
-</div>
+<div class="modal-backdrop fade show" *ngIf="produtoSelecionado" (click)="fecharModal()"></div>
 
 <!-- Modal -->
-<div
-  class="modal fade"
-  tabindex="-1"
-  [class.show]="produtoSelecionado"
-  [style.display]="produtoSelecionado ? 'block' : 'none'"
->
-  <div class="modal-dialog">
+<div class="modal fade" tabindex="-1" [class.show]="produtoSelecionado"
+  [style.display]="produtoSelecionado ? 'block' : 'none'">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">
-          {{ produtoSelecionado?.id ? "Editar Produto" : "Novo Produto" }}
-        </h5>
-        <button
-          type="button"
-          class="btn-close"
-          (click)="fecharModal()"
-        ></button>
+        <h5 class="modal-title">{{ produtoSelecionado?.id ? "Editar Produto" : "Novo Produto" }}</h5>
+        <button type="button" class="btn-close" (click)="fecharModal()"></button>
       </div>
+
       <div class="modal-body">
-        <form *ngIf="produtoSelecionado">
-          <div class="mb-3">
-            <label class="form-label">Nome</label>
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="produtoSelecionado.nome"
-              name="nome"
-              required
-            />
+        <form *ngIf="produtoSelecionado" (ngSubmit)="salvar()" #produtoForm="ngForm">
+          <div class="row">
+            <div class="col-md-8 mb-3">
+              <label class="form-label">Nome</label>
+              <input type="text" class="form-control" [(ngModel)]="produtoSelecionado.nome" name="nome" required />
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Quantidade</label>
+              <input type="number" class="form-control" [(ngModel)]="produtoSelecionado.quantidade" name="quantidade"
+                min="0" required />
+            </div>
           </div>
+
           <div class="mb-3">
             <label class="form-label">Descrição</label>
-            <textarea
-              class="form-control"
-              [(ngModel)]="produtoSelecionado.descricao"
-              name="descricao"
-              rows="3"
-            ></textarea>
+            <textarea class="form-control" [(ngModel)]="produtoSelecionado.descricao" name="descricao"
+              rows="2"></textarea>
           </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Preço</label>
+              <input type="number" class="form-control" [(ngModel)]="produtoSelecionado.preco" name="preco" min="0"
+                step="0.01" required />
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Categoria</label>
+              <select class="form-select" [(ngModel)]="produtoSelecionado.categoria" name="categoria" required>
+                <option [ngValue]="null">-- selecione --</option>
+                <option *ngFor="let c of categorias" [ngValue]="c">{{ c.nome || ('#' + (c.id ?? '—')) }}</option>
+              </select>
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Usuário</label>
+              <select class="form-select" [(ngModel)]="produtoSelecionado.usuario" name="usuario" required>
+                <option [ngValue]="null">-- selecione --</option>
+                <option *ngFor="let u of usuarios" [ngValue]="u">{{ u.nome || ('#' + (u.id ?? '—')) }}</option>
+              </select>
+            </div>
+          </div>
+
           <div class="mb-3">
-            <label class="form-label">Preço</label>
-            <input
-              type="number"
-              class="form-control"
-              [(ngModel)]="produtoSelecionado.preco"
-              name="preco"
-              min="0"
-              step="0.01"
-              required
-            />
+            <label class="form-label d-block">Tags</label>
+            <div class="form-check form-check-inline" *ngFor="let t of tagsDisponiveis">
+              <input class="form-check-input" type="checkbox" [value]="t.id" (change)="toggleTag(t, $event)"
+                [checked]="isTagSelected(t)" id="tag-{{t.id ?? ''}}" />
+              <label class="form-check-label" [for]="'tag-' + (t.id ?? '')">{{ t.nome || ('#' + (t.id ?? '—'))
+                }}</label>
+            </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label">Quantidade</label>
-            <input
-              type="number"
-              class="form-control"
-              [(ngModel)]="produtoSelecionado.quantidade"
-              name="quantidade"
-              min="0"
-              required
-            />
-          </div>
+
         </form>
       </div>
+
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="fecharModal()">
-          Cancelar
-        </button>
-        <button type="button" class="btn btn-success" (click)="salvar()">
-          Salvar
-        </button>
+        <button type="button" class="btn btn-secondary" (click)="fecharModal()">Cancelar</button>
+        <button type="button" class="btn btn-success" (click)="salvar()">Salvar</button>
       </div>
     </div>
   </div>

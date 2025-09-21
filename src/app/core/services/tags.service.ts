@@ -1,5 +1,6 @@
+// src/app/core/services/tags.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Tag } from '../../shared/models/tag';
 
@@ -8,6 +9,12 @@ import { Tag } from '../../shared/models/tag';
 })
 export class TagsService {
   private apiUrl = 'http://localhost:8080/api/tags';
+
+  private httpOptions = {
+    headers: new HttpHeaders({
+      'Content-Type': 'application/json'
+    })
+  };
 
   constructor(private http: HttpClient) {}
 
@@ -20,14 +27,14 @@ export class TagsService {
   }
 
   criar(tag: Tag): Observable<Tag> {
-    return this.http.post<Tag>(this.apiUrl, tag);
+    return this.http.post<Tag>(this.apiUrl, tag, this.httpOptions);
   }
 
   atualizar(id: number, tag: Tag): Observable<Tag> {
-    return this.http.put<Tag>(`${this.apiUrl}/${id}`, tag);
+    return this.http.put<Tag>(`${this.apiUrl}/${id}`, tag, this.httpOptions);
   }
 
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, this.httpOptions);
   }
 }

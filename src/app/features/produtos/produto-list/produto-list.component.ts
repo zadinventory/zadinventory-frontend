@@ -1,49 +1,96 @@
+// src/app/features/produtos/produto-list/produto-list.component.ts
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ProdutosService } from '../../../core/services/produtos.service';
-import { Produto } from '../../../shared/models/produto';
-import Swal from 'sweetalert2';
 import { FormsModule } from '@angular/forms';
+import Swal from 'sweetalert2';
+
+import { ProdutosService } from '../../../core/services/produtos.service';
+import { CategoriasService } from '../../../core/services/categorias.service';
+import { UsuariosService } from '../../../core/services/usuarios.service';
+import { TagsService } from '../../../core/services/tags.service';
+
+import { Produto } from '../../../shared/models/produto';
+import { Categoria } from '../../../shared/models/categoria';
+import { Usuario } from '../../../shared/models/usuario';
+import { Tag } from '../../../shared/models/tag';
 
 @Component({
   selector: 'app-produto-list',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './produto-list.component.html',
-  styleUrls: ['./produto-list.component.scss'],
+  styleUrls: ['./produto-list.component.scss']
 })
 export class ProdutoListComponent implements OnInit {
   produtos: Produto[] = [];
   produtoSelecionado: Produto | null = null;
 
-  constructor(private produtoService: ProdutosService) {}
+  categorias: Categoria[] = [];
+  usuarios: Usuario[] = [];
+  tagsDisponiveis: Tag[] = [];
+
+  constructor(
+    private produtoService: ProdutosService,
+    private categoriaService: CategoriasService,
+    private usuarioService: UsuariosService,
+    private tagService: TagsService
+  ) {}
 
   ngOnInit(): void {
     this.carregarProdutos();
+    this.carregarCategorias();
+    this.carregarUsuarios();
+    this.carregarTags();
   }
 
   carregarProdutos(): void {
     this.produtoService.listar().subscribe({
-      next: (data) => (this.produtos = data),
-      error: (err) => console.error('Erro ao carregar produtos', err),
+      next: (data: Produto[]) => (this.produtos = data),
+      error: (err) => console.error('Erro ao carregar produtos', err)
     });
   }
 
-novoProduto(): void {
-  this.produtoSelecionado = {
-    nome: '',
-    descricao: '',
-    quantidade: 0,
-    preco: 0,
-    categoria: { id: 1 }, // você pode setar um default
-    usuario: { id: 1 },   // ou pegar do usuário logado
-    tags: []
-  };
-}
+  carregarCategorias(): void {
+    this.categoriaService.listar().subscribe({
+      next: (data: Categoria[]) => (this.categorias = data),
+      error: (err) => console.error('Erro ao carregar categorias', err)
+    });
+  }
 
+  carregarUsuarios(): void {
+    this.usuarioService.listar().subscribe({
+      next: (data: Usuario[]) => (this.usuarios = data),
+      error: (err) => console.error('Erro ao carregar usuarios', err)
+    });
+  }
+
+  carregarTags(): void {
+    this.tagService.listar().subscribe({
+      next: (data: Tag[]) => (this.tagsDisponiveis = data),
+      error: (err) => console.error('Erro ao carregar tags', err)
+    });
+  }
+
+  novoProduto(): void {
+    this.produtoSelecionado = {
+      nome: '',
+      descricao: '',
+      quantidade: 0,
+      preco: 0,
+      categoria: null,
+      usuario: null,
+      tags: []
+    } as Produto;
+  }
 
   editar(produto: Produto): void {
-    this.produtoSelecionado = { ...produto };
+    this.produtoSelecionado = {
+      ...produto,
+      categoria: produto.categoria ? { ...produto.categoria } : null,
+      usuario: produto.usuario ? { ...produto.usuario } : null,
+      tags: produto.tags ? produto.tags.map(t => ({ ...t })) : []
+    } as Produto;
   }
 
   excluir(produto: Produto): void {
@@ -59,14 +106,14 @@ novoProduto(): void {
       showCancelButton: true,
       confirmButtonText: 'Sim, excluir!',
       cancelButtonText: 'Cancelar',
-    }).then((result) => {
+    }).then(result => {
       if (result.isConfirmed) {
         this.produtoService.excluir(produto.id!).subscribe({
           next: () => {
             Swal.fire('Excluído!', 'Produto removido com sucesso.', 'success');
             this.carregarProdutos();
           },
-          error: () => Swal.fire('Erro', 'Não foi possível excluir', 'error'),
+          error: () => Swal.fire('Erro', 'Não foi possível excluir', 'error')
         });
       }
     });
@@ -75,11 +122,16 @@ novoProduto(): void {
   salvar(): void {
     if (!this.produtoSelecionado) return;
 
+    if (!this.produtoSelecionado.nome || !this.produtoSelecionado.categoria || !this.produtoSelecionado.usuario) {
+      Swal.fire('Erro', 'Nome, categoria e usuário são obrigatórios.', 'error');
+      return;
+    }
+
+    // garantir número com 2 casas
+    this.produtoSelecionado.preco = Number(Number(this.produtoSelecionado.preco).toFixed(2));
+
     const req = this.produtoSelecionado.id
-      ? this.produtoService.atualizar(
-          this.produtoSelecionado.id,
-          this.produtoSelecionado
-        )
+      ? this.produtoService.atualizar(this.produtoSelecionado.id, this.produtoSelecionado)
       : this.produtoService.criar(this.produtoSelecionado);
 
     req.subscribe({
@@ -88,11 +140,43 @@ novoProduto(): void {
         this.carregarProdutos();
         this.fecharModal();
       },
-      error: () => Swal.fire('Erro', 'Não foi possível salvar', 'error'),
+      error: err => {
+        console.error(err);
+        Swal.fire('Erro', 'Não foi possível salvar', 'error');
+      }
     });
   }
 
   fecharModal(): void {
     this.produtoSelecionado = null;
+  }
+
+  // Tags helpers
+  isTagSelected(tag: Tag): boolean {
+    if (!this.produtoSelecionado || !this.produtoSelecionado.tags) return false;
+    if (tag.id == null) return false;
+    return this.produtoSelecionado.tags.some(t => t.id === tag.id);
+  }
+
+  // agora recebe o Event do change e extrai checked de forma segura
+  toggleTag(tag: Tag, event: Event): void {
+    if (!this.produtoSelecionado) return;
+    if (!this.produtoSelecionado.tags) this.produtoSelecionado.tags = [];
+
+    const input = event.target as HTMLInputElement | null;
+    const checked = input?.checked ?? false;
+
+    if (tag.id == null) {
+      console.warn('toggleTag chamado com tag sem id — ignorando', tag);
+      return;
+    }
+
+    if (checked) {
+      if (!this.produtoSelecionado.tags.some(t => t.id === tag.id)) {
+        this.produtoSelecionado.tags.push({ id: tag.id, nome: tag.nome });
+      }
+    } else {
+      this.produtoSelecionado.tags = this.produtoSelecionado.tags.filter(t => t.id !== tag.id);
+    }
   }
 }
