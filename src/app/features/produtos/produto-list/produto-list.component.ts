@@ -24,11 +24,20 @@ import { Tag } from '../../../shared/models/tag';
 })
 export class ProdutoListComponent implements OnInit {
   produtos: Produto[] = [];
+  produtosFiltrados: Produto[] = [];
   produtoSelecionado: Produto | null = null;
 
   categorias: Categoria[] = [];
   usuarios: Usuario[] = [];
   tagsDisponiveis: Tag[] = [];
+
+  // Objeto para armazenar os filtros
+ filtro = {
+  nome: '',
+  categoriaId: null as number | null,
+  precoMaximo: null as number | null,
+  tagsIds: [] as number[]  // Sempre será um array, nunca undefined
+};
 
   constructor(
     private produtoService: ProdutosService,
@@ -46,8 +55,14 @@ export class ProdutoListComponent implements OnInit {
 
   carregarProdutos(): void {
     this.produtoService.listar().subscribe({
-      next: (data: Produto[]) => (this.produtos = data),
-      error: (err) => console.error('Erro ao carregar produtos', err)
+      next: (data: Produto[]) => {
+        this.produtos = data;
+        this.produtosFiltrados = [...data]; // Inicializa com todos os produtos
+      },
+      error: (err) => {
+        console.error('Erro ao carregar produtos', err);
+        Swal.fire('Erro', 'Não foi possível carregar os produtos', 'error');
+      }
     });
   }
 
@@ -71,6 +86,87 @@ export class ProdutoListComponent implements OnInit {
       error: (err) => console.error('Erro ao carregar tags', err)
     });
   }
+
+  // === MÉTODOS DE FILTRO ===
+
+  aplicarFiltros(): void {
+  this.produtosFiltrados = this.produtos.filter(produto => {
+    // Filtro por nome (case insensitive)
+    if (this.filtro.nome && 
+        !produto.nome.toLowerCase().includes(this.filtro.nome.toLowerCase())) {
+      return false;
+    }
+
+    // Filtro por categoria - CORRIGIDO
+    if (this.filtro.categoriaId !== null && this.filtro.categoriaId !== undefined) {
+      const categoriaIdFiltro = Number(this.filtro.categoriaId);
+      const categoriaIdProduto = produto.categoria?.id;
+      
+      // console.log para debug (remova depois)
+      console.log('Filtrando categoria:', {
+        filtro: categoriaIdFiltro,
+        produto: categoriaIdProduto,
+        iguais: categoriaIdProduto === categoriaIdFiltro
+      });
+      
+      if (categoriaIdProduto !== categoriaIdFiltro) {
+        return false;
+      }
+    }
+
+    // Filtro por preço máximo - TAMBÉM PODE TER O MESMO PROBLEMA
+    if (this.filtro.precoMaximo !== null && 
+        this.filtro.precoMaximo !== undefined) {
+      const precoMaximo = Number(this.filtro.precoMaximo);
+      if ((produto.preco ?? 0) > precoMaximo) {
+        return false;
+      }
+    }
+
+    // Filtro por tags
+    if (this.filtro.tagsIds.length > 0) {
+      const produtoTagsIds = produto.tags?.map(t => t.id).filter(id => id !== undefined) || [];
+      const temTodasTags = this.filtro.tagsIds.every(tagId => 
+        produtoTagsIds.includes(tagId)
+      );
+      if (!temTodasTags) return false;
+    }
+
+    return true;
+  });
+}
+
+  toggleTagFiltro(tag: Tag): void {
+    if (!tag.id) return;
+
+    const index = this.filtro.tagsIds.indexOf(tag.id);
+    if (index > -1) {
+      this.filtro.tagsIds.splice(index, 1);
+    } else {
+      this.filtro.tagsIds.push(tag.id);
+    }
+    
+    this.aplicarFiltros();
+  }
+
+  limparFiltros(): void {
+  this.filtro = {
+    nome: '',
+    categoriaId: null,
+    precoMaximo: null,
+    tagsIds: []  // Garante que sempre retorne um array vazio
+  };
+  this.produtosFiltrados = [...this.produtos];
+}
+
+  temFiltrosAtivos(): boolean {
+    return !!this.filtro.nome || 
+           this.filtro.categoriaId !== null || 
+           this.filtro.precoMaximo !== null || 
+           this.filtro.tagsIds.length > 0;
+  }
+
+  // === MÉTODOS CRUD ===
 
   novoProduto(): void {
     this.produtoSelecionado = {
@@ -111,7 +207,7 @@ export class ProdutoListComponent implements OnInit {
         this.produtoService.excluir(produto.id!).subscribe({
           next: () => {
             Swal.fire('Excluído!', 'Produto removido com sucesso.', 'success');
-            this.carregarProdutos();
+            this.carregarProdutos(); // Recarrega a lista
           },
           error: () => Swal.fire('Erro', 'Não foi possível excluir', 'error')
         });
@@ -158,7 +254,6 @@ export class ProdutoListComponent implements OnInit {
     return this.produtoSelecionado.tags.some(t => t.id === tag.id);
   }
 
-  // agora recebe o Event do change e extrai checked de forma segura
   toggleTag(tag: Tag, event: Event): void {
     if (!this.produtoSelecionado) return;
     if (!this.produtoSelecionado.tags) this.produtoSelecionado.tags = [];

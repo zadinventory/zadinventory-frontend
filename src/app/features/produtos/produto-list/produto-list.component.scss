@@ -1,0 +1,16 @@
+// Estilos para os filtros
+.filter-card {
+  background-color: #f8f9fa;
+  border-left: 4px solid #0d6efd;
+}
+
+// Badge de filtros ativos
+.badge.bg-info {
+  font-size: 0.75em;
+}
+
+// Estados dos checkboxes de tags
+.form-check-input:checked {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
