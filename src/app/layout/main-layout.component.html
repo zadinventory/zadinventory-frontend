@@ -1,1 +1,5 @@
-<p>main-layout works!</p>
+<ng-container *ngIf="isAuthenticated()">
+  <app-header></app-header>
+</ng-container>
+
+<router-outlet></router-outlet>

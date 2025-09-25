@@ -31,6 +31,7 @@ export class UsuarioListComponent implements OnInit {
 
 novoUsuario() {
   this.usuarioSelecionado = {
+    id: 0,
     nome: '',
     email: '',
     senha: '',

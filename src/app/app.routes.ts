@@ -3,6 +3,11 @@ import { MainLayoutComponent } from './layout/main-layout.component';
 
 export const routes: Routes = [
   {
+    path: 'login',
+    loadComponent: () =>
+      import('./features/auth/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
     path: '',
     component: MainLayoutComponent,
     children: [
@@ -41,15 +46,8 @@ export const routes: Routes = [
             (m) => m.TagListComponent
           ),
       },
-      { path: '', redirectTo: 'produtos', pathMatch: 'full' },
+      { path: '', redirectTo: 'login', pathMatch: 'full' },
     ],
   },
-  {
-    path: 'login',
-    loadComponent: () =>
-      import('./features/auth/login/login.component').then(
-        (m) => m.LoginComponent
-      ),
-  },
-  { path: '**', redirectTo: 'produtos' },
+  { path: '**', redirectTo: 'login' },
 ];
