@@ -1,8 +1,17 @@
+// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout.component';
+import { AuthGuard } from './core/services/auth.guard';
 
 export const routes: Routes = [
-  // Primeira rota: login
+  // Rota raiz redireciona para login
+  { 
+    path: '', 
+    redirectTo: 'login', 
+    pathMatch: 'full' 
+  },
+
+  // Rota de login (pública)
   {
     path: 'login',
     loadComponent: () =>
@@ -15,34 +24,35 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent,
+    canActivate: [AuthGuard], // Usa o AuthGuard corrigido para SSR
     children: [
       {
         path: 'produtos',
         loadComponent: () =>
-          import(
-            './features/produtos/produto-list/produto-list.component'
-          ).then((m) => m.ProdutoListComponent),
+          import('./features/produtos/produto-list/produto-list.component').then(
+            (m) => m.ProdutoListComponent
+          ),
       },
       {
         path: 'usuarios',
         loadComponent: () =>
-          import(
-            './features/usuarios/usuario-list/usuario-list.component'
-          ).then((m) => m.UsuarioListComponent),
+          import('./features/usuarios/usuario-list/usuario-list.component').then(
+            (m) => m.UsuarioListComponent
+          ),
       },
       {
         path: 'operacoes',
         loadComponent: () =>
-          import(
-            './features/operacoes/operacao-list/operacao-list.component'
-          ).then((m) => m.OperacaoListComponent),
+          import('./features/operacoes/operacao-list/operacao-list.component').then(
+            (m) => m.OperacaoListComponent
+          ),
       },
       {
         path: 'categorias',
         loadComponent: () =>
-          import(
-            './features/categorias/categoria-list.component'
-          ).then((m) => m.CategoriaListComponent),
+          import('./features/categorias/categoria-list.component').then(
+            (m) => m.CategoriaListComponent
+          ),
       },
       {
         path: 'tags',
@@ -52,11 +62,18 @@ export const routes: Routes = [
           ),
       },
 
-      // Se o usuário acessar "/" e estiver logado -> redireciona pra produtos
-      { path: '', redirectTo: 'produtos', pathMatch: 'full' },
+      // Redirecionamento interno para produtos (apenas quando autenticado)
+      { 
+        path: '', 
+        redirectTo: 'produtos', 
+        pathMatch: 'full' 
+      },
     ],
   },
 
-  // Qualquer rota desconhecida vai pro login
-  { path: '**', redirectTo: 'login' },
+  // Rota wildcard - qualquer rota não encontrada vai para login
+  { 
+    path: '**', 
+    redirectTo: 'login' 
+  },
 ];

@@ -1,7 +1,7 @@
-import { Component, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, Inject, PLATFORM_ID, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './header.component';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-main-layout',
@@ -9,21 +9,25 @@ import { CommonModule } from '@angular/common';
   imports: [RouterOutlet, HeaderComponent, CommonModule],
   template: `
     <div class="d-flex flex-column vh-100">
-      <ng-container *ngIf="isAuthenticated()">
-        <app-header></app-header>
-      </ng-container>
+      <!-- Mostra header apenas quando estiver no browser e autenticado -->
+      <app-header *ngIf="isBrowser && isAuthenticated()"></app-header>
 
-      <main class="flex-fill container mt-4">
+      <main [class.mt-4]="isBrowser && isAuthenticated()" class="flex-fill container">
         <router-outlet></router-outlet>
       </main>
     </div>
   `,
 })
 export class MainLayoutComponent {
+  isBrowser: boolean;
+  isAuthenticated = signal(false);
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
-
-  isAuthenticated(): boolean {
-    return !!localStorage.getItem('token'); // simples por enquanto
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+    
+    // Só verifica autenticação no browser
+    if (this.isBrowser) {
+      this.isAuthenticated.set(!!localStorage.getItem('token'));
+    }
   }
 }
