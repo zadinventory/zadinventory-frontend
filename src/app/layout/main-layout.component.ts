@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './header.component';
 import { CommonModule } from '@angular/common';
@@ -20,6 +20,9 @@ import { CommonModule } from '@angular/common';
   `,
 })
 export class MainLayoutComponent {
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
+
   isAuthenticated(): boolean {
     return !!localStorage.getItem('token'); // simples por enquanto
   }
