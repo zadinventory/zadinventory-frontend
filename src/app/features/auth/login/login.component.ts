@@ -2,8 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import Swal from 'sweetalert2';
 import { AuthService } from '../../../core/services/auth.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-login',
@@ -18,19 +18,22 @@ export class LoginComponent {
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  login(): void {
-    this.authService.login({ email: this.email, senha: this.senha }).subscribe({
-      next: () => {
-        Swal.fire('Bem-vindo!', 'Login realizado com sucesso!', 'success');
-        this.router.navigate(['/produtos']);
-      },
-      error: (err) => {
-        Swal.fire(
-          'Erro',
-          err.error?.message || 'Credenciais inválidas',
-          'error'
-        );
-      },
-    });
+  onSubmit() {
+    if (!this.email || !this.senha) {
+      Swal.fire('Erro', 'Preencha todos os campos!', 'error');
+      return;
+    }
+
+    // 🔹 login estático (validação fake)
+    if (this.email === 'admin@teste.com' && this.senha === '123') {
+      this.authService.fakeLogin(this.email); // salva no localStorage
+      Swal.fire('Bem-vindo!', 'Login realizado com sucesso!', 'success').then(
+        () => {
+          this.router.navigate(['/produtos']);
+        }
+      );
+    } else {
+      Swal.fire('Erro', 'Credenciais inválidas!', 'error');
+    }
   }
 }

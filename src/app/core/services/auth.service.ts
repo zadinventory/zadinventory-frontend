@@ -44,4 +44,16 @@ export class AuthService {
   isLogado(): boolean {
     return !!this.getToken();
   }
+  fakeLogin(email: string) {
+    localStorage.setItem('token', 'fake-jwt-token');
+    localStorage.setItem(
+      'usuario',
+      JSON.stringify({
+        id: 1,
+        nome: 'Administrador',
+        email,
+        tipoUsuario: 'GERENTE',
+      })
+    );
+  }
 }
