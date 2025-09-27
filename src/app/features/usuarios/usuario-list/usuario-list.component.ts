@@ -14,7 +14,15 @@ import Swal from 'sweetalert2';
 })
 export class UsuarioListComponent implements OnInit {
   usuarios: Usuario[] = [];
+  usuariosFiltrados: Usuario[] = [];
   usuarioSelecionado: Usuario | null = null;
+
+  // Filtros PERSONALIZADOS para Usuários
+  filtro = {
+    nome: '',
+    email: '',
+    tipoUsuario: null as string | null
+  };
 
   constructor(private usuarioService: UsuariosService) {}
 
@@ -24,22 +32,68 @@ export class UsuarioListComponent implements OnInit {
 
   carregarUsuarios(): void {
     this.usuarioService.listar().subscribe({
-      next: (data) => (this.usuarios = data),
-      error: (err) => console.error('Erro ao carregar usuários', err),
+      next: (data: Usuario[]) => {
+        this.usuarios = data;
+        this.usuariosFiltrados = [...data]; // Inicializa com todos os usuários
+      },
+      error: (err) => {
+        console.error('Erro ao carregar usuários', err);
+        Swal.fire('Erro', 'Não foi possível carregar os usuários', 'error');
+      }
     });
   }
 
-novoUsuario() {
-  this.usuarioSelecionado = {
-    id: 0,
-    nome: '',
-    email: '',
-    senha: '',
-    tipoUsuario: 'FUNCIONARIO'
-  };
-}
+  // === MÉTODOS DE FILTRO PERSONALIZADOS PARA USUÁRIOS ===
 
+  aplicarFiltros(): void {
+    this.usuariosFiltrados = this.usuarios.filter(usuario => {
+      // Filtro por nome (case insensitive)
+      if (this.filtro.nome && 
+          !usuario.nome.toLowerCase().includes(this.filtro.nome.toLowerCase())) {
+        return false;
+      }
 
+      // Filtro por email (case insensitive)
+      if (this.filtro.email && 
+          !usuario.email.toLowerCase().includes(this.filtro.email.toLowerCase())) {
+        return false;
+      }
+
+      // Filtro por tipo de usuário
+      if (this.filtro.tipoUsuario !== null && 
+          this.filtro.tipoUsuario !== undefined) {
+        if (usuario.tipoUsuario !== this.filtro.tipoUsuario) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  limparFiltros(): void {
+    this.filtro = {
+      nome: '',
+      email: '',
+      tipoUsuario: null
+    };
+    this.usuariosFiltrados = [...this.usuarios];
+  }
+
+  temFiltrosAtivos(): boolean {
+    return !!this.filtro.nome || !!this.filtro.email || this.filtro.tipoUsuario !== null;
+  }
+
+  // === MÉTODOS CRUD (mantidos originais com pequenos ajustes) ===
+
+  novoUsuario(): void {
+    this.usuarioSelecionado = {
+      nome: '',
+      email: '',
+      senha: '',
+      tipoUsuario: 'FUNCIONARIO'
+    } as Usuario;
+  }
 
   editar(usuario: Usuario): void {
     this.usuarioSelecionado = { ...usuario };
@@ -60,7 +114,7 @@ novoUsuario() {
       cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.usuarioService.excluir(usuario.id!).subscribe({
+        this.usuarioService.excluir(usuario.id).subscribe({
           next: () => {
             Swal.fire('Excluído!', 'Usuário removido com sucesso.', 'success');
             this.carregarUsuarios();
@@ -73,6 +127,12 @@ novoUsuario() {
 
   salvar(): void {
     if (!this.usuarioSelecionado) return;
+
+    // Validações básicas
+    if (!this.usuarioSelecionado.nome || !this.usuarioSelecionado.email) {
+      Swal.fire('Erro', 'Nome e email são obrigatórios.', 'error');
+      return;
+    }
 
     const req = this.usuarioSelecionado.id
       ? this.usuarioService.atualizar(

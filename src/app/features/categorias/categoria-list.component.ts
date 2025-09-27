@@ -14,7 +14,14 @@ import { Categoria } from '../../../app/shared/models/categoria';
 })
 export class CategoriaListComponent implements OnInit {
   categorias: Categoria[] = [];
+  categoriasFiltradas: Categoria[] = [];
   categoriaSelecionada: Categoria | null = null;
+
+  // Filtros SIMPLIFICADOS para Categorias (apenas campos relevantes)
+  filtro = {
+    nome: '',
+    descricao: ''
+  };
 
   constructor(private categoriasService: CategoriasService) {}
 
@@ -24,13 +31,55 @@ export class CategoriaListComponent implements OnInit {
 
   carregarCategorias(): void {
     this.categoriasService.listar().subscribe({
-      next: (data: Categoria[]) => (this.categorias = data),
-      error: (err: any) => console.error('Erro ao carregar categorias', err),
+      next: (data: Categoria[]) => {
+        this.categorias = data;
+        this.categoriasFiltradas = [...data]; // Inicializa com todas as categorias
+      },
+      error: (err: any) => {
+        console.error('Erro ao carregar categorias', err);
+        Swal.fire('Erro', 'Não foi possível carregar as categorias', 'error');
+      }
     });
   }
 
+  // === MÉTODOS DE FILTRO PERSONALIZADOS PARA CATEGORIAS ===
+
+  aplicarFiltros(): void {
+    this.categoriasFiltradas = this.categorias.filter(categoria => {
+      // Filtro por nome (case insensitive)
+      if (this.filtro.nome && 
+          !categoria.nome.toLowerCase().includes(this.filtro.nome.toLowerCase())) {
+        return false;
+      }
+
+      // Filtro por descrição (case insensitive) - apenas se descrição existir
+      if (this.filtro.descricao) {
+        const descricao = categoria.descricao || '';
+        if (!descricao.toLowerCase().includes(this.filtro.descricao.toLowerCase())) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  limparFiltros(): void {
+    this.filtro = {
+      nome: '',
+      descricao: ''
+    };
+    this.categoriasFiltradas = [...this.categorias];
+  }
+
+  temFiltrosAtivos(): boolean {
+    return !!this.filtro.nome || !!this.filtro.descricao;
+  }
+
+  // === MÉTODOS CRUD (mantidos originais) ===
+
   novaCategoria(): void {
-    this.categoriaSelecionada = {nome: '', descricao: '' };
+    this.categoriaSelecionada = { nome: '', descricao: '' };
   }
 
   editar(categoria: Categoria): void {
@@ -49,11 +98,7 @@ export class CategoriaListComponent implements OnInit {
       if (result.isConfirmed) {
         this.categoriasService.excluir(categoria.id!).subscribe({
           next: () => {
-            Swal.fire(
-              'Excluída!',
-              'Categoria removida com sucesso.',
-              'success'
-            );
+            Swal.fire('Excluída!', 'Categoria removida com sucesso.', 'success');
             this.carregarCategorias();
           },
           error: () =>
@@ -68,7 +113,7 @@ export class CategoriaListComponent implements OnInit {
 
     const req = this.categoriaSelecionada.id
       ? this.categoriasService.atualizar(
-          this.categoriaSelecionada.id!,
+          this.categoriaSelecionada.id,
           this.categoriaSelecionada
         )
       : this.categoriasService.criar(this.categoriaSelecionada);
