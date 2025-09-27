@@ -16,6 +16,7 @@ export class CategoriaListComponent implements OnInit {
   categorias: Categoria[] = [];
   categoriasFiltradas: Categoria[] = [];
   categoriaSelecionada: Categoria | null = null;
+  isLoading = false;
 
   // Filtros SIMPLIFICADOS para Categorias (apenas campos relevantes)
   filtro = {
@@ -101,15 +102,19 @@ export class CategoriaListComponent implements OnInit {
             Swal.fire('Excluída!', 'Categoria removida com sucesso.', 'success');
             this.carregarCategorias();
           },
-          error: () =>
-            Swal.fire('Erro', 'Não foi possível excluir a categoria', 'error'),
-        });
+          error: (err) => {
+            const mensagemErro = err.error?.message || 'Não foi possível excluir a categoria';
+            Swal.fire('Erro', mensagemErro, 'error');
+        }
+          });
       }
     });
   }
 
   salvar(): void {
     if (!this.categoriaSelecionada) return;
+
+    this.isLoading = true;
 
     const req = this.categoriaSelecionada.id
       ? this.categoriasService.atualizar(
@@ -122,14 +127,20 @@ export class CategoriaListComponent implements OnInit {
       next: () => {
         Swal.fire('Sucesso', 'Categoria salva com sucesso!', 'success');
         this.carregarCategorias();
-        this.categoriaSelecionada = null;
+        this.fecharModal();
       },
-      error: () =>
-        Swal.fire('Erro', 'Não foi possível salvar a categoria', 'error'),
+      error: (err) => {
+        const mensagemErro = err.error?.message || 'Não foi possível salvar a categoria';
+        Swal.fire('Erro', mensagemErro, 'error');
+        },
+        complete: () => {
+          this.isLoading = false;
+        }
     });
   }
 
   fecharModal(): void {
     this.categoriaSelecionada = null;
+    this.isLoading = false;
   }
 }
