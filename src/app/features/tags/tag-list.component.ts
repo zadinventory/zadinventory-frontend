@@ -14,7 +14,13 @@ import { Tag } from '../../../app/shared/models/tag';
 })
 export class TagListComponent implements OnInit {
   tags: Tag[] = [];
+  tagsFiltradas: Tag[] = [];
   tagSelecionada: Tag | null = null;
+
+  // Filtro MÍNIMO para Tags - apenas nome
+  filtro = {
+    nome: ''
+  };
 
   constructor(private tagsService: TagsService) {}
 
@@ -24,13 +30,43 @@ export class TagListComponent implements OnInit {
 
   carregarTags(): void {
     this.tagsService.listar().subscribe({
-      next: (data: Tag[]) => (this.tags = data),
-      error: (err: any) => console.error('Erro ao carregar tags', err),
+      next: (data: Tag[]) => {
+        this.tags = data;
+        this.tagsFiltradas = [...data]; // Inicializa com todas as tags
+      },
+      error: (err: any) => {
+        console.error('Erro ao carregar tags', err);
+        Swal.fire('Erro', 'Não foi possível carregar as tags', 'error');
+      }
     });
   }
 
+  // === MÉTODOS DE FILTRO SIMPLIFICADOS PARA TAGS ===
+
+  aplicarFiltros(): void {
+    if (!this.filtro.nome) {
+      this.tagsFiltradas = [...this.tags];
+      return;
+    }
+
+    this.tagsFiltradas = this.tags.filter(tag => 
+      tag.nome.toLowerCase().includes(this.filtro.nome.toLowerCase())
+    );
+  }
+
+  limparFiltros(): void {
+    this.filtro.nome = '';
+    this.tagsFiltradas = [...this.tags];
+  }
+
+  temFiltrosAtivos(): boolean {
+    return !!this.filtro.nome;
+  }
+
+  // === MÉTODOS CRUD (mantidos originais) ===
+
   novaTag(): void {
-    this.tagSelecionada = {nome: '' };
+    this.tagSelecionada = { nome: '' };
   }
 
   editar(tag: Tag): void {
@@ -62,8 +98,14 @@ export class TagListComponent implements OnInit {
   salvar(): void {
     if (!this.tagSelecionada) return;
 
+    // Validação básica
+    if (!this.tagSelecionada.nome || this.tagSelecionada.nome.trim() === '') {
+      Swal.fire('Erro', 'O nome da tag é obrigatório.', 'error');
+      return;
+    }
+
     const req = this.tagSelecionada.id
-      ? this.tagsService.atualizar(this.tagSelecionada.id!, this.tagSelecionada)
+      ? this.tagsService.atualizar(this.tagSelecionada.id, this.tagSelecionada)
       : this.tagsService.criar(this.tagSelecionada);
 
     req.subscribe({
