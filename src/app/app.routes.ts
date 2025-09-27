@@ -1,7 +1,7 @@
 // src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout.component';
-import { AuthGuard } from './core/services/auth.guard';
+import { AuthGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   // Rota raiz redireciona para login
