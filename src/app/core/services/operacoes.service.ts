@@ -32,17 +32,15 @@ export class OperacoesService {
   }
 
   atualizar(id: number, operacao: OperacaoRequest): Observable<Operacao> {
-    // Remove o id do body para evitar duplicação
     const { id: _, ...body } = operacao;
     return this.http.put<Operacao>(`${this.base}/${id}`, body, this.httpOptions);
   }
 
   atualizarSituacao(id: number, situacao: string): Observable<Operacao> {
-    return this.http.patch<Operacao>(
-      `${this.base}/${id}/situacao?situacao=${situacao}`, 
-      {}, 
-      this.httpOptions
-    );
+    // URL corrigida - usando 'novaSituacao' como parâmetro
+    const url = `${this.base}/${id}/situacao?novaSituacao=${encodeURIComponent(situacao)}`;
+    console.log('URL da situação:', url);
+    return this.http.patch<Operacao>(url, {}, this.httpOptions);
   }
 
   excluir(id: number): Observable<void> {

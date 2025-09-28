@@ -69,12 +69,13 @@ export class OperacaoListComponent implements OnInit {
     return new Promise((resolve) => {
       this.operacoesService.listar().subscribe({
         next: (data: Operacao[]) => {
+          console.log('Operações carregadas:', data);
           this.operacoes = data;
           this.aplicarFiltros();
           resolve();
         },
         error: (err: any) => {
-          console.error('Erro ao carregar operações', err);
+          console.error('Erro ao carregar operações:', err);
           Swal.fire('Erro', 'Não foi possível carregar as operações', 'error');
           resolve();
         }
@@ -92,7 +93,7 @@ export class OperacaoListComponent implements OnInit {
           resolve();
         },
         error: (err: any) => {
-          console.error('Erro ao carregar produtos', err);
+          console.error('Erro ao carregar produtos:', err);
           this.carregandoProdutos = false;
           resolve();
         }
@@ -110,7 +111,7 @@ export class OperacaoListComponent implements OnInit {
           resolve();
         },
         error: (err: any) => {
-          console.error('Erro ao carregar usuários', err);
+          console.error('Erro ao carregar usuários:', err);
           this.carregandoUsuarios = false;
           resolve();
         }
@@ -130,11 +131,16 @@ export class OperacaoListComponent implements OnInit {
   }
 
   editar(operacao: Operacao): void {
+    console.log('Editando operação:', operacao);
+    
+    // CORREÇÃO: Garantir que temos IDs válidos
+    const produtoId = operacao.produto?.id || 0;
+    const usuarioId = operacao.usuario?.id || 0;
+
     this.operacaoEdit = {
       id: operacao.id,
-      // CORREÇÃO: Garantir que os IDs são números
-      produtoId: operacao.produto.id || 0,
-      usuarioId: operacao.usuario.id || 0,
+      produtoId: produtoId,
+      usuarioId: usuarioId,
       situacao: operacao.situacao,
       diaOperacao: operacao.diaOperacao,
       quantidade: operacao.quantidade
@@ -143,6 +149,7 @@ export class OperacaoListComponent implements OnInit {
   }
 
   alterarSituacao(operacao: Operacao): void {
+    console.log('Alterando situação da operação:', operacao);
     this.operacaoSituacao = operacao;
     this.novaSituacao = operacao.situacao;
     this.showSituacaoModal = true;
@@ -151,16 +158,19 @@ export class OperacaoListComponent implements OnInit {
   confirmarSituacao(): void {
     if (!this.operacaoSituacao) return;
 
+    console.log('Confirmando situação:', this.novaSituacao, 'para operação:', this.operacaoSituacao.id);
+
     this.salvando = true;
     this.operacoesService.atualizarSituacao(this.operacaoSituacao.id, this.novaSituacao)
       .subscribe({
-        next: () => {
+        next: (response) => {
+          console.log('Situação atualizada com sucesso:', response);
           Swal.fire('Sucesso', 'Situação atualizada com sucesso!', 'success');
           this.carregarOperacoes();
           this.fecharSituacaoModal();
         },
         error: (err: any) => {
-          console.error('Erro ao atualizar situação', err);
+          console.error('Erro ao atualizar situação:', err);
           Swal.fire('Erro', 'Não foi possível atualizar a situação', 'error');
           this.salvando = false;
         }
@@ -168,6 +178,8 @@ export class OperacaoListComponent implements OnInit {
   }
 
   excluir(operacao: Operacao): void {
+    console.log('Excluindo operação:', operacao);
+
     Swal.fire({
       title: 'Tem certeza?',
       text: `Excluir operação #${operacao.id}?`,
@@ -179,11 +191,12 @@ export class OperacaoListComponent implements OnInit {
       if (result.isConfirmed) {
         this.operacoesService.excluir(operacao.id).subscribe({
           next: () => {
+            console.log('Operação excluída com sucesso');
             Swal.fire('Excluída!', 'Operação removida com sucesso.', 'success');
             this.carregarOperacoes();
           },
           error: (err: any) => {
-            console.error('Erro ao excluir operação', err);
+            console.error('Erro ao excluir operação:', err);
             Swal.fire('Erro', 'Não foi possível excluir a operação', 'error');
           }
         });
@@ -193,6 +206,8 @@ export class OperacaoListComponent implements OnInit {
 
   salvar(): void {
     if (!this.operacaoEdit) return;
+
+    console.log('Salvando operação:', this.operacaoEdit);
 
     // Validações
     if (!this.operacaoEdit.produtoId || !this.operacaoEdit.usuarioId || !this.operacaoEdit.quantidade) {
@@ -208,18 +223,20 @@ export class OperacaoListComponent implements OnInit {
     this.salvando = true;
     const request = this.operacaoEdit;
     
-    const req = this.operacaoEdit.id
-      ? this.operacoesService.atualizar(this.operacaoEdit.id, request)
+    const operacaoId = this.operacaoEdit.id;
+    const req = operacaoId
+      ? this.operacoesService.atualizar(operacaoId, request)
       : this.operacoesService.criar(request);
 
     req.subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('Operação salva com sucesso:', response);
         Swal.fire('Sucesso', 'Operação salva com sucesso!', 'success');
         this.carregarOperacoes();
         this.fecharModal();
       },
       error: (err: any) => {
-        console.error('Erro ao salvar operação', err);
+        console.error('Erro ao salvar operação:', err);
         const mensagem = err.error?.message || 'Não foi possível salvar a operação';
         Swal.fire('Erro', mensagem, 'error');
         this.salvando = false;
