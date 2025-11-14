@@ -1,17 +1,15 @@
 // src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout.component';
-import { AuthGuard } from './core/guards/auth.guard';
+import { authGuard } from './core/guards/auth.guard'; // ← minúsculo (função)
+import { roleGuard } from './core/guards/role.guard'; // ← minúsculo (função)
 
 export const routes: Routes = [
-  // Rota raiz redireciona para login
   { 
     path: '', 
     redirectTo: 'login', 
     pathMatch: 'full' 
   },
-
-  // Rota de login (pública)
   {
     path: 'login',
     loadComponent: () =>
@@ -19,12 +17,10 @@ export const routes: Routes = [
         (m) => m.LoginComponent
       ),
   },
-
-  // Rotas protegidas
   {
     path: '',
     component: MainLayoutComponent,
-    canActivate: [AuthGuard], // Usa o AuthGuard corrigido para SSR
+    canActivate: [authGuard], // ← função, não classe
     children: [
       {
         path: 'produtos',
@@ -39,6 +35,8 @@ export const routes: Routes = [
           import('./features/usuarios/usuario-list/usuario-list.component').then(
             (m) => m.UsuarioListComponent
           ),
+        canActivate: [roleGuard], // ← função, não classe
+        data: { expectedRole: 'GERENTE' }
       },
       {
         path: 'operacoes',
@@ -61,8 +59,6 @@ export const routes: Routes = [
             (m) => m.TagListComponent
           ),
       },
-
-      // Redirecionamento interno para produtos (apenas quando autenticado)
       { 
         path: '', 
         redirectTo: 'produtos', 
@@ -70,8 +66,6 @@ export const routes: Routes = [
       },
     ],
   },
-
-  // Rota wildcard - qualquer rota não encontrada vai para login
   { 
     path: '**', 
     redirectTo: 'login' 

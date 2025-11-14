@@ -16,6 +16,7 @@ import { isPlatformBrowser } from '@angular/common';
 export class LoginComponent {
   email = '';
   senha = '';
+  isLoading = false;
   private isBrowser: boolean;
 
   constructor(
@@ -34,23 +35,34 @@ export class LoginComponent {
       return;
     }
 
-    // 🔹 login estático (validação fake)
-    if (this.email === 'admin@teste.com' && this.senha === '123') {
-      this.authService.fakeLogin(this.email);
-      
-      if (this.isBrowser) {
-        Swal.fire('Bem-vindo!', 'Login realizado com sucesso!', 'success').then(
-          () => {
+    this.isLoading = true;
+
+    this.authService.login({ email: this.email, senha: this.senha }).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        
+        if (this.isBrowser) {
+          Swal.fire({
+            title: 'Bem-vindo!',
+            text: 'Login realizado com sucesso!',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          }).then(() => {
             this.router.navigate(['/produtos']);
-          }
-        );
-      } else {
-        this.router.navigate(['/produtos']);
+          });
+        } else {
+          this.router.navigate(['/produtos']);
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Erro no login:', error);
+        
+        if (this.isBrowser) {
+          Swal.fire('Erro', error.error.message, 'error');
+        }
       }
-    } else {
-      if (this.isBrowser) {
-        Swal.fire('Erro', 'Credenciais inválidas!', 'error');
-      }
-    }
+    });
   }
 }

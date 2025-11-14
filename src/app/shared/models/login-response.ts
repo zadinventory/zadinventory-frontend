@@ -2,5 +2,6 @@ import { Usuario } from "./usuario";
 
 export interface LoginResponse {
   token: string;
-  usuario: Usuario;
+  email: string;
+  tipoUsuario: string;
 }

@@ -1,33 +1,25 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+// src/app/core/guards/auth.guard.ts
+import { CanActivateFn } from '@angular/router';
+import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID } from '@angular/core';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthGuard implements CanActivate {
-  private isBrowser: boolean;
+export const authGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  const platformId = inject(PLATFORM_ID);
 
-  constructor(
-    private router: Router,
-    private authService: AuthService,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {
-    this.isBrowser = isPlatformBrowser(this.platformId);
+  // No SSR, sempre permite a navegação e deixa o cliente redirecionar
+  if (!isPlatformBrowser(platformId)) {
+    return true;
   }
 
-  canActivate(): boolean {
-    // No SSR, sempre permite a navegação e deixa o cliente redirecionar
-    if (!this.isBrowser) {
-      return true;
-    }
-
-    if (this.authService.isLogado()) {
-      return true;
-    } else {
-      this.router.navigate(['/login']);
-      return false;
-    }
+  if (authService.isLogado()) {
+    return true;
+  } else {
+    router.navigate(['/login']);
+    return false;
   }
-}
+};
