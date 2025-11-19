@@ -4,12 +4,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Produto } from '../../shared/models/produto';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProdutosService {
-  private base = 'http://localhost:8080/api/produtos';
+  private base = environment.SERVIDOR+"/api/produtos";
 
   private httpOptions = {
     headers: new HttpHeaders({

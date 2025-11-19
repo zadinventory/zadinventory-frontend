@@ -4,12 +4,13 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Operacao } from '../../shared/models/operacao';
 import { OperacaoRequest } from '../../shared/models/operacao-request';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OperacoesService {
-  private base = 'http://localhost:8080/api/operacoes';
+  private base = environment.SERVIDOR+"/api/operacoes";
 
   private httpOptions = {
     headers: new HttpHeaders({

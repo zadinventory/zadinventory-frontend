@@ -5,6 +5,7 @@ import { catchError, tap } from 'rxjs/operators';
 import { LoginRequest } from '../../shared/models/login-request';
 import { LoginResponse } from '../../shared/models/login-response';
 import { isPlatformBrowser } from '@angular/common';
+import { environment } from '../../../environments/environment';
 
 export interface User {
   email: string;
@@ -14,7 +15,7 @@ export interface User {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/auth'; // URL do back-end
+  private apiUrl = environment.SERVIDOR+"/api/auth"; 
   private isBrowser: boolean;
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
