@@ -9,7 +9,7 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root',
 })
 export class TagsService {
- private apiUrl = environment.SERVIDOR+"api/tags";
+ private apiUrl = environment.SERVIDOR+"/api/tags";
 
   private httpOptions = {
     headers: new HttpHeaders({
